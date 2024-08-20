@@ -1,4 +1,4 @@
-import { fromEvent, interval, map, merge } from "./operators/index.mjs";
+import { fromEvent, interval, map, merge, switchMap } from "./operators/index.mjs";
 import { formatPixelsToNumber } from "./utils/formatPixelsToNumber.mjs";
 
 const canvas = document.getElementById("canvas");
@@ -58,12 +58,32 @@ merge([
   fromEvent(canvas, mouseEvents.touchstart)
     .pipeThrough(map(e => touchToMouse(e, mouseEvents.touchstart))),
 ])
-.pipeTo(new WritableStream({
-  write(mouseDown) {
-    const position = getMousePosition(canvas, mouseDown)
+.pipeThrough(
+  switchMap(e => {
+    return merge([
+      fromEvent(canvas, mouseEvents.move),
+      // fromEvent(canvas, mouseEvents.touchmove)
+      //   .pipeThrough(map(e => touchToMouse(e, mouseEvents.touchmove))),
+    ])
+  })
+  // { pairwise: false }
+)
+.pipeThrough(map(function([mouseDown, mouseMove]) {
+  this._lastPosition = this._lastPosition ?? mouseDown
 
-    ctx.moveTo(0, 0)
-    ctx.lineTo(position.x, position.y)
+  const [from, to] = [
+    this._lastPosition, mouseMove
+  ].map(item => getMousePosition(canvas, item))
+
+  this._lastPosition = mouseMove
+  return { from, to }
+}))
+.pipeTo(new WritableStream({
+  write({ from, to }) {
+    ctx.beginPath()
+    ctx.moveTo(from.x, from.y)
+    ctx.lineTo(to.x, to.y)
     ctx.stroke()
+    ctx.closePath()
   }
 }))
