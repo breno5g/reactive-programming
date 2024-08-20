@@ -13,6 +13,7 @@ export const merge = (streams) => {
         async function read() {
           const { done, value } = await reader.read()
           if (done) return
+          if (!controler.desiredSize) return
           controler.enqueue(value)
           return read()
         }
