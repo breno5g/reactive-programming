@@ -1,4 +1,4 @@
-import { fromEvent, interval, map } from "./operators/index.mjs";
+import { fromEvent, interval, map, merge } from "./operators/index.mjs";
 import { formatPixelsToNumber } from "./utils/formatPixelsToNumber.mjs";
 
 const canvas = document.getElementById("canvas");
@@ -53,9 +53,11 @@ const touchToMouse = (touchEvent, mouseEvent) => {
 
 }
 
-
-fromEvent(canvas, mouseEvents.touchstart)
-.pipeThrough(map(e => touchToMouse(e, mouseEvents.touchstart)))
+merge([
+  fromEvent(canvas, mouseEvents.down),
+  fromEvent(canvas, mouseEvents.touchstart)
+    .pipeThrough(map(e => touchToMouse(e, mouseEvents.touchstart))),
+])
 .pipeTo(new WritableStream({
   write(mouseDown) {
     const position = getMousePosition(canvas, mouseDown)
