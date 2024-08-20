@@ -131,6 +131,7 @@ fromEvent(clearBtn, mouseEvents.click).pipeTo(
     async write(chunk) {
       ctx.beginPath();
       ctx.strokeStyle = "white";
+      ctx.lineWidth = 5;
 
       for (const { from, to } of store.get()) {
         ctx.moveTo(from.x, from.y);
