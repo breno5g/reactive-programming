@@ -1,4 +1,4 @@
-import { fromEvent, interval } from "./operators/index.mjs";
+import { fromEvent, interval, map } from "./operators/index.mjs";
 
 const canvas = document.getElementById("canvas");
 const clearBtn = document.getElementById("clear");
@@ -13,6 +13,9 @@ const resetCanvas = (width, height) => {
 resetCanvas()
 
 fromEvent(canvas, "mousedown")
+.pipeThrough(map((e) => {
+  return JSON.stringify(e, null, 2)
+}))
 .pipeTo(new WritableStream({
   write(chunk) {
     console.log(chunk)
